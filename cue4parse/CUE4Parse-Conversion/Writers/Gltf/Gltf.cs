@@ -69,11 +69,12 @@ public class Gltf
                 foreach (var delta in morphModel.Vertices)
                 {
                     var vert = lod.Vertices[delta.SourceIdx];
-                    var srcVert = new VertexPositionNormalTangent(SwapYZ(vert.Position * UnitScale),SwapYZAndNormalize((FVector)vert.Normal) , SwapYZAndNormalize((Vector4)vert.Tangent));
+                    var srcVert = PrepareVertex(vert);
                     var index = FindVert(srcVert, verts);
                     if (index == -1)  continue;
 
-                    morphBuilder.SetVertexDelta(morphBuilder.Vertices.ElementAt(index), new VertexGeometryDelta(SwapYZ(delta.PositionDelta * UnitScale), Vector3.Zero, SwapYZAndNormalize(delta.TangentZDelta)));
+                    morphBuilder.SetVertexDelta(verts[index], new VertexGeometryDelta(
+                        SwapYZ(delta.PositionDelta * UnitScale), SwapYZ(delta.TangentZDelta), Vector3.Zero));
                 }
             }
 
@@ -88,7 +89,7 @@ public class Gltf
     {
         for (int i = 0; i < b.Length; i++)
         {
-            if (b[i].GetPosition() == a.GetPosition()) // not a good idea but i don't see any other way
+            if (b[i].Equals(a))
                 return i;
         }
         return -1;
@@ -227,11 +228,21 @@ public class Gltf
 
     private static (VERTEX, VERTEX, VERTEX) PrepareTris(IMeshVertex vert1, IMeshVertex vert2, IMeshVertex vert3)
     {
-        var v1 = new VertexPositionNormalTangent(SwapYZ(vert1.Position * UnitScale),SwapYZAndNormalize((FVector)vert1.Normal) , SwapYZAndNormalize((Vector4)vert1.Tangent));
-        var v2 = new VertexPositionNormalTangent(SwapYZ(vert2.Position * UnitScale), SwapYZAndNormalize((FVector)vert2.Normal), SwapYZAndNormalize((Vector4)vert2.Tangent));
-        var v3 = new VertexPositionNormalTangent(SwapYZ(vert3.Position * UnitScale), SwapYZAndNormalize((FVector)vert3.Normal), SwapYZAndNormalize((Vector4)vert3.Tangent));
+        var v1 = PrepareVertex(vert1);
+        var v2 = PrepareVertex(vert2);
+        var v3 = PrepareVertex(vert3);
 
         return (v1, v2, v3);
+    }
+
+    private static VertexPositionNormalTangent PrepareVertex(IMeshVertex vertex)
+    {
+        var tangent = SwapYZAndNormalize((FVector)vertex.Tangent);
+        // Unreal stores the bitangent sign in TangentZ.W (Normal.W). Swapping
+        // Y/Z reverses handedness; the glTF tangent's W must remain exactly +/-1.
+        var sign = vertex.Normal.W < 0 ? 1.0f : -1.0f;
+        return new VertexPositionNormalTangent(SwapYZ(vertex.Position * UnitScale),
+            SwapYZAndNormalize((FVector)vertex.Normal), new Vector4(tangent.X, tangent.Y, tangent.Z, sign));
     }
 
     public static FVector SwapYZAndNormalize(FVector vec)
@@ -249,8 +260,4 @@ public class Gltf
 
     public static FQuat SwapYZ(FQuat quat) => new (quat.X, quat.Z, quat.Y, -quat.W);
 
-    public static Vector4 SwapYZAndNormalize(Vector4 vec)
-    {
-      return Vector4.Normalize(new Vector4(vec.X, vec.Z, vec.Y, vec.W));
-    }
 }
