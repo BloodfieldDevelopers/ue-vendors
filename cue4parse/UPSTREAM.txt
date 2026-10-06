@@ -1,0 +1,4 @@
+https://github.com/FabianFG/CUE4Parse
+Commit: e4ea4ba8ec2b88d08b2066dfb8962863dccb36cc
+License: Apache-2.0; see LICENSE
+Local change: resolve UE4.23 animation curve codecs from their serialized subobject path.
