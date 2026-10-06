@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/tge-was-taken/KismetKompiler",
+  "commit": "8fbb843db1da73f96fae1c10ef36752872feab73",
+  "UAssetAPI": {
+    "repository": "https://github.com/tge-was-taken/UAssetAPI",
+    "commit": "8fb576d586a0cff98ca741ac182bcd6df186903f"
+  }
+}

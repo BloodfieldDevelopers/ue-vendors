@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)../../../.local-tmp/build/vendor/$(MSBuildProjectName)/</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(MSBuildThisFileDirectory)../../../.local-private/tools/build/$(MSBuildProjectName)/</BaseOutputPath>
+  </PropertyGroup>
+</Project>

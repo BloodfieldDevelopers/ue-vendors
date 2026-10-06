@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "KismetKompiler": {
+      "commandName": "Project",
+      "commandLineArgs": "decompile -i \"F:\\Development\\KismetKompiler\\Testdata\\SMTVV\\Battle\\Logic\\AI\\Enemy\\BtlAI_DemiFiendNkmBase.uasset\" -v 4.27 -f "
+    }
+  }
+}
