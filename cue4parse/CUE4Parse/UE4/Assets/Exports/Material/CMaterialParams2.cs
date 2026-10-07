@@ -163,10 +163,10 @@ public class CMaterialParams2
         ["Emissive7", "Color07"]
     ];
 
-    public readonly Dictionary<string, ILoadableObject> Textures = [];
-    public readonly Dictionary<string, FLinearColor> Colors = [];
-    public readonly Dictionary<string, float> Scalars = [];
-    public readonly Dictionary<string, bool> Switches = [];
+    public readonly Dictionary<string, ILoadableObject> Textures = new(StringComparer.OrdinalIgnoreCase);
+    public readonly Dictionary<string, FLinearColor> Colors = new(StringComparer.OrdinalIgnoreCase);
+    public readonly Dictionary<string, float> Scalars = new(StringComparer.OrdinalIgnoreCase);
+    public readonly Dictionary<string, bool> Switches = new(StringComparer.OrdinalIgnoreCase);
     public readonly Dictionary<string, object?> Properties = [];
 
     public IEnumerable<UTexture> GetTextures(IEnumerable<string> names)

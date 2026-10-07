@@ -53,7 +53,7 @@ public abstract class ExporterBase : IExporter
 
     protected ExporterBase(UObject export, string? className = null) : this(BuildPackagePath(export), export.Name, className ?? export.ExportType)
     {
-
+        ObjectPath = export.GetPathName();
     }
 
     protected internal ExporterBase(GameFile file, string className) : this(file.PathWithoutExtension, file.NameWithoutExtension, className)

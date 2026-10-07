@@ -18,6 +18,10 @@ public class UMaterialInstanceTimeVarying : UMaterialInstance;
 
 public class UMaterialInstance : UMaterialInterface
 {
+    public FScalarParameterValue[] ScalarParameterValues = [];
+    public FTextureParameterValue[] TextureParameterValues = [];
+    public FVectorParameterValue[] VectorParameterValues = [];
+
     private bool bHasNonUPropertyStaticParameters = false;
     public FPackageIndex? Parent { get; private set; }
     public bool bHasStaticPermutationResource;
@@ -30,6 +34,9 @@ public class UMaterialInstance : UMaterialInterface
         if (Ar.Game == GAME_WorldofJadeDynasty) Ar.Position += 24;
         base.Deserialize(Ar, validPos);
         Parent = GetOrDefault<FPackageIndex?>(nameof(Parent));
+        ScalarParameterValues = GetOrDefault<FScalarParameterValue[]>(nameof(ScalarParameterValues), []);
+        TextureParameterValues = GetOrDefault<FTextureParameterValue[]>(nameof(TextureParameterValues), []);
+        VectorParameterValues = GetOrDefault<FVectorParameterValue[]>(nameof(VectorParameterValues), []);
         bHasStaticPermutationResource = GetOrDefault<bool>("bHasStaticPermutationResource");
         BasePropertyOverrides = GetOrDefault<FMaterialInstanceBasePropertyOverrides>(nameof(BasePropertyOverrides));
         StaticParameters = GetOrDefault(nameof(StaticParameters), GetOrDefault<FStaticParameterSet>("StaticParametersRuntime"));
@@ -109,6 +116,10 @@ public class UMaterialInstance : UMaterialInterface
 
     public override void GetParams(CMaterialParams2 parameters, EMaterialDepth depth)
     {
+        if (depth != EMaterialDepth.TopLayerOnly && Parent?.TryLoad<UUnrealMaterial>(out var parent) == true && parent != this)
+            parent.GetParams(parameters, depth);
+
+        parameters.AppendAllProperties(Properties);
         base.GetParams(parameters, depth);
 
         if (StaticParameters != null)
@@ -119,6 +130,46 @@ public class UMaterialInstance : UMaterialInterface
         {
             parameters.BlendMode = BasePropertyOverrides.BlendMode;
             parameters.ShadingModel = BasePropertyOverrides.ShadingModel;
+        }
+
+
+        foreach (var textureParameter in TextureParameterValues)
+        {
+            if (textureParameter.ParameterValue is not { } texture)
+                continue;
+
+            if (!parameters.VerifyTexture(textureParameter.Name, texture))
+                parameters.VerifyTexture(texture.Name, texture);
+        }
+
+        foreach (var vectorParameter in VectorParameterValues)
+        {
+            if (vectorParameter.ParameterValue is not { } vector)
+                continue;
+            parameters.Colors[vectorParameter.Name] = vector;
+        }
+
+        foreach (var scalarParameter in ScalarParameterValues)
+            parameters.Scalars[scalarParameter.Name] = scalarParameter.ParameterValue;
+    }
+
+    public override void AppendReferencedTextures(IList<FPackageIndex> outTextures, bool onlyRendered)
+    {
+        if (onlyRendered)
+        {
+            // default implementation does that
+            base.AppendReferencedTextures(outTextures, true);
+        }
+        else
+        {
+            foreach (var value in TextureParameterValues)
+            {
+                if (value.ParameterValue != null && !outTextures.Contains(value.ParameterValue))
+                    outTextures.Add(value.ParameterValue);
+            }
+
+            if (Parent?.TryLoad<UUnrealMaterial>(out var parent) == true && parent != this)
+                parent.AppendReferencedTextures(outTextures, onlyRendered);
         }
     }
 

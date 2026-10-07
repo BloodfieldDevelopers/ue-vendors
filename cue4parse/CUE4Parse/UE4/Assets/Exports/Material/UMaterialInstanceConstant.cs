@@ -8,18 +8,6 @@ public class ULandscapeMaterialInstanceConstant: UMaterialInstanceConstant;
 
 public class UMaterialInstanceConstant : UMaterialInstance
 {
-    public FScalarParameterValue[] ScalarParameterValues = [];
-    public FTextureParameterValue[] TextureParameterValues = [];
-    public FVectorParameterValue[] VectorParameterValues = [];
-
-    public override void Deserialize(FAssetArchive Ar, long validPos)
-    {
-        base.Deserialize(Ar, validPos);
-        ScalarParameterValues = GetOrDefault(nameof(ScalarParameterValues), Array.Empty<FScalarParameterValue>());
-        TextureParameterValues = GetOrDefault(nameof(TextureParameterValues), Array.Empty<FTextureParameterValue>());
-        VectorParameterValues = GetOrDefault(nameof(VectorParameterValues), Array.Empty<FVectorParameterValue>());
-    }
-
     public override void GetParams(CMaterialParams parameters)
     {
         // get params from linked UMaterial3
@@ -243,51 +231,4 @@ public class UMaterialInstanceConstant : UMaterialInstance
             parameters.Diffuse = TextureParameterValues[0].ParameterValue;
     }
 
-    public override void GetParams(CMaterialParams2 parameters, EMaterialDepth depth)
-    {
-        if (depth != EMaterialDepth.TopLayerOnly && Parent?.TryLoad<UUnrealMaterial>(out var parent) == true && parent != this)
-            parent.GetParams(parameters, depth);
-
-        parameters.AppendAllProperties(Properties);
-        base.GetParams(parameters, depth);
-
-        foreach (var textureParameter in TextureParameterValues)
-        {
-            if (textureParameter.ParameterValue is not { } texture)
-                continue;
-
-            if (!parameters.VerifyTexture(textureParameter.Name, texture))
-                parameters.VerifyTexture(texture.Name, texture);
-        }
-
-        foreach (var vectorParameter in VectorParameterValues)
-        {
-            if (vectorParameter.ParameterValue is not { } vector)
-                continue;
-            parameters.Colors[vectorParameter.Name] = vector;
-        }
-
-        foreach (var scalarParameter in ScalarParameterValues)
-            parameters.Scalars[scalarParameter.Name] = scalarParameter.ParameterValue;
-    }
-
-    public override void AppendReferencedTextures(IList<FPackageIndex> outTextures, bool onlyRendered)
-    {
-        if (onlyRendered)
-        {
-            // default implementation does that
-            base.AppendReferencedTextures(outTextures, true);
-        }
-        else
-        {
-            foreach (var value in TextureParameterValues)
-            {
-                if (value.ParameterValue != null && !outTextures.Contains(value.ParameterValue))
-                    outTextures.Add(value.ParameterValue);
-            }
-
-            if (Parent?.TryLoad<UUnrealMaterial>(out var parent) == true && parent != this)
-                parent.AppendReferencedTextures(outTextures, onlyRendered);
-        }
-    }
 }

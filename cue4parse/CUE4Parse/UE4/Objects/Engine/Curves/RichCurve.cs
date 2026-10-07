@@ -424,7 +424,7 @@ public class FRichCurve : FRealCurve
         var key1TanY = sinAngle * leaveWeight + key1.Value;
         angle = Math.Atan(key2.ArriveTangent);
         cosAngle = Math.Cos(angle);
-        sinAngle = Math.Cos(angle);
+        sinAngle = Math.Sin(angle);
 
         double arriveWeight = key2.ArriveTangentWeight;
         if (key2.TangentWeightMode is RCTWM_WeightedNone or RCTWM_WeightedLeave)
