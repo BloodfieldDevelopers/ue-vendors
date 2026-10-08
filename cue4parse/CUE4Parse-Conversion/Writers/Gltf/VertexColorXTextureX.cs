@@ -24,7 +24,7 @@ public struct VertexColorXTextureX : IVertexMaterial, IEquatable<VertexColorXTex
 
     public VertexColorXTextureX(Vector2[] texCoords, Vector4? color = null)
     {
-        Color = color ?? Vector4.Zero;
+        Color = color ?? Vector4.One;
         TexCoord0 = texCoords.Length > 0 ? texCoords[0] : Vector2.Zero;
         TexCoord1 = texCoords.Length > 1 ? texCoords[1] : Vector2.Zero;
         TexCoord2 = texCoords.Length > 2 ? texCoords[2] : Vector2.Zero;
