@@ -43,7 +43,12 @@ public class USkeleton : UObject
 
         if (Ar.Ver >= EUnrealEngineObjectUE4Version.REFERENCE_SKELETON_REFACTOR)
         {
-            ReferenceSkeleton = new FReferenceSkeleton(Ar);
+            ReferenceSkeleton = new FReferenceSkeleton(Ar, VirtualBones);
+            if (BoneTree.Length < BoneCount)
+            {
+                // Virtual bones use Animation translation retargeting.
+                Array.Resize(ref BoneTree, BoneCount);
+            }
         }
 
         if (Ar.Ver >= EUnrealEngineObjectUE4Version.FIX_ANIMATIONBASEPOSE_SERIALIZATION)
