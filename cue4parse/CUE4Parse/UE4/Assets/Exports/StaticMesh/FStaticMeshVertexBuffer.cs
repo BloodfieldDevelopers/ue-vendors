@@ -1,3 +1,4 @@
+using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Exceptions;
 using CUE4Parse.UE4.Objects.Engine;
 using CUE4Parse.UE4.Objects.RenderCore;
@@ -41,7 +42,7 @@ public class FStaticMeshVertexBuffer
             }
             else
             {
-                var tempTangents = Array.Empty<FPackedNormal[]>();
+                var tempTangents = Array.Empty<FVector4[]>();
                 if (Ar.Game is GAME_StarWarsJediFallenOrder or GAME_StarWarsJediSurvivor && Ar.ReadBoolean()) // bDropNormals
                     goto texture_coordinates;
 
@@ -97,7 +98,7 @@ public class FStaticMeshVertexBuffer
                 {
                     if (Ar.Game is GAME_StarWarsJediFallenOrder or GAME_StarWarsJediSurvivor && tempTangents.Length == 0)
                     {
-                        UV[i] = new FStaticMeshUVItem([new FPackedNormal(0), new FPackedNormal(0), new FPackedNormal(0)], uv[i]);
+                        UV[i] = new FStaticMeshUVItem([new FVector4(), new FVector4(), new FVector4()], uv[i]);
                     }
                     else
                     {

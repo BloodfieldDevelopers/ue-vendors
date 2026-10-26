@@ -3,6 +3,7 @@ using CommunityToolkit.HighPerformance;
 using CUE4Parse.GameTypes.Nascar.Assets.Exports;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.Meshes;
+using CUE4Parse.UE4.Objects.RenderCore;
 using GenericReader;
 
 namespace CUE4Parse_Conversion.Dto;
@@ -58,7 +59,7 @@ public partial class MeshLodDto<TVertex>
             var pos = posAr.Read<FVector>();
             var uvSpan = uvs.Slice(uvOffset + uvAdditionalOffset, numTexCoords);
 
-            vertices[i] = new MeshVertex(pos, tangents[i].X, tangents[i].Z, uvSpan[0]);
+            vertices[i] = new MeshVertex(pos, new FPackedNormal(tangents[i].Z, signed: true), new FPackedNormal(tangents[i].X, signed: true), uvSpan[0]);
 
             for (var j = 0; j < extraUvs.Length; j++)
             {

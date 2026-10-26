@@ -248,7 +248,11 @@ public class Gltf
     public static FVector SwapYZAndNormalize(FVector vec)
     {
         var res = SwapYZ(vec);
-        res.Normalize();
+        var length = MathF.Sqrt(res.X * res.X + res.Y * res.Y + res.Z * res.Z);
+        if (length > 0.0f)
+        {
+            res /= length;
+        }
         return res;
     }
 

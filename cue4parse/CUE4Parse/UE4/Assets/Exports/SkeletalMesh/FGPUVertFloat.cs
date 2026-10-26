@@ -17,7 +17,7 @@ public class FGPUVertFloat : FSkelMeshVertexBase
         UVs = [];
     }
 
-    public FGPUVertFloat(FVector position, FPackedNormal[] normals, FSkinWeightInfo? infs, FMeshUVFloat[] uv) : base(position, normals, infs)
+    public FGPUVertFloat(FVector position, FVector4[] normals, FSkinWeightInfo? infs, FMeshUVFloat[] uv) : base(position, normals, infs)
     {
         UVs = uv;
     }

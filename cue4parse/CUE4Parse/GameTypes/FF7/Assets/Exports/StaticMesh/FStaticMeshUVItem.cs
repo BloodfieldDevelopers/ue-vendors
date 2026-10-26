@@ -13,14 +13,14 @@ public partial class FStaticMeshUVItem
     private const uint NormalSignMask = 1u << 30;
     private const uint OrientationMask = 1u << 31;
 
-    public static FPackedNormal[] SerializeTangentsFF7R(FArchive Ar)
+    public static FVector4[] SerializeTangentsFF7R(FArchive Ar)
     {
         var packed = Ar.Read<uint>();
         var normal = DecodeNormal(packed);
         var tangent = DecodeTangent(packed, normal);
         var orientation = (packed & OrientationMask) != 0 ? 1.0f : -1.0f;
 
-        return [new FPackedNormal(tangent), new FPackedNormal(0), new FPackedNormal(new FVector4(normal, orientation))];
+        return [new FVector4(tangent), new FVector4(), new FVector4(normal, orientation)];
     }
 
     private static FVector DecodeNormal(uint packed)

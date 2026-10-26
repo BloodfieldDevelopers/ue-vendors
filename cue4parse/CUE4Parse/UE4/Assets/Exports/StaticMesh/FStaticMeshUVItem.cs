@@ -10,7 +10,7 @@ namespace CUE4Parse.UE4.Assets.Exports.StaticMesh;
 [JsonConverter(typeof(FStaticMeshUVItemConverter))]
 public partial class FStaticMeshUVItem
 {
-    public readonly FPackedNormal[] Normal;
+    public readonly FVector4[] Normal;
     public readonly FMeshUVFloat[] UV;
     public readonly FVector Position;
     public readonly FColor Color;
@@ -30,18 +30,18 @@ public partial class FStaticMeshUVItem
         UV = SerializeTexcoords(Ar, numStaticUVSets, useStaticFloatUVs);
     }
 
-    public FStaticMeshUVItem(FPackedNormal[] normal, FMeshUVFloat[] uv)
+    public FStaticMeshUVItem(FVector4[] normal, FMeshUVFloat[] uv)
     {
         Normal = normal;
         UV = uv;
     }
 
-    public static FPackedNormal[] SerializeTangents(FArchive Ar, bool useHighPrecisionTangents)
+    public static FVector4[] SerializeTangents(FArchive Ar, bool useHighPrecisionTangents)
     {
         if (!useHighPrecisionTangents)
-            return [new FPackedNormal(Ar), Ar.Ver < EUnrealEngineObjectUE3Version.AddedRemovedNormal ? new FPackedNormal(Ar) : new FPackedNormal(0), new FPackedNormal(Ar)]; // # TangentX, TangentY and TangentZ
+            return [new FPackedNormal(Ar), Ar.Ver < EUnrealEngineObjectUE3Version.AddedRemovedNormal ? (FVector4) new FPackedNormal(Ar) : new FVector4(), new FPackedNormal(Ar)]; // # TangentX, TangentY and TangentZ
 
-        return [(FPackedNormal) new FPackedRGBA16N(Ar), Ar.Ver < EUnrealEngineObjectUE3Version.AddedRemovedNormal ? (FPackedNormal) new FPackedRGBA16N(Ar) : new FPackedNormal(0), (FPackedNormal) new FPackedRGBA16N(Ar)];
+        return [(FVector4) new FPackedRGBA16N(Ar), Ar.Ver < EUnrealEngineObjectUE3Version.AddedRemovedNormal ? (FVector4) new FPackedRGBA16N(Ar) : new FVector4(), (FVector4) new FPackedRGBA16N(Ar)];
     }
 
     public static FMeshUVFloat[] SerializeTexcoords(FArchive Ar, int numStaticUVSets, bool useStaticFloatUVs)

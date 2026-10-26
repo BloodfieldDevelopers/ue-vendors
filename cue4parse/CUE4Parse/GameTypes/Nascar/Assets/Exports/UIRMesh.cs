@@ -80,7 +80,6 @@ public sealed class FIRMeshBuffer
         Info = new FIRMeshInfo(Ar);
         PositionData = Ar.ReadBulkArray<byte>();
         TangentData = Ar.ReadBulkArray<byte>();
-        TensorUtils.Xor(TangentData, (byte) 0x80);
         UVData = Ar.ReadBulkArray<byte>();
         IndexStride = Ar.Read<int>();
         IndexData = Ar.ReadBulkArray<byte>();
@@ -127,8 +126,8 @@ public readonly struct FIRMeshInfo(FAssetArchive Ar)
 
 public struct FIRMeshNormals
 {
-    public FPackedNormal X;
-    public FPackedNormal Z;
+    public uint X;
+    public uint Z;
 }
 
 // for the SkeletalMesh case

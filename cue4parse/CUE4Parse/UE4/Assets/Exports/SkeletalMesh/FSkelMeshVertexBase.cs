@@ -11,7 +11,7 @@ namespace CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 public abstract class FSkelMeshVertexBase
 {
     public FVector Pos;
-    public FPackedNormal[] Normal;
+    public FVector4[] Normal;
     public FSkinWeightInfo? Infs;
 
     public abstract FMeshUVFloat[] UVs { get; }
@@ -21,7 +21,7 @@ public abstract class FSkelMeshVertexBase
         Normal = [];
     }
 
-    protected FSkelMeshVertexBase(FVector position, FPackedNormal[] normals, FSkinWeightInfo? infs)
+    protected FSkelMeshVertexBase(FVector position, FVector4[] normals, FSkinWeightInfo? infs)
     {
         Pos = position;
         Normal = normals;
@@ -31,7 +31,7 @@ public abstract class FSkelMeshVertexBase
     public void SerializeForGPU(FArchive Ar, bool bExtraBoneInfluences = false)
     {
         if (Ar.Ver < EUnrealEngineObjectUE3Version.SKELETAL_MESH_SUPPORT_PACKED_POSITION) Pos = Ar.Read<FVector>();
-        Normal = new FPackedNormal[3];
+        Normal = new FVector4[3];
         Normal[0] = new FPackedNormal(Ar);
         if (Ar.Ver < EUnrealEngineObjectUE3Version.SKELETAL_MESH_REMOVE_BINORMAL_TANGENT_VECTOR) Normal[1] = new FPackedNormal(Ar);
         Normal[2] = new FPackedNormal(Ar);
@@ -45,7 +45,7 @@ public abstract class FSkelMeshVertexBase
 
     public void SerializeForEditor(FArchive Ar)
     {
-        Normal = new FPackedNormal[3];
+        Normal = new FVector4[3];
         Pos = Ar.Read<FVector>();
         if (FRenderingObjectVersion.Get(Ar) < FRenderingObjectVersion.Type.IncreaseNormalPrecision)
         {
@@ -56,9 +56,9 @@ public abstract class FSkelMeshVertexBase
         else
         {
             // New normals are stored with full floating point precision
-            Normal[0] = new FPackedNormal(Ar.Read<FVector>());
-            Normal[1] = new FPackedNormal(Ar.Read<FVector>());
-            Normal[2] = new FPackedNormal(Ar.Read<FVector4>());
+            Normal[0] = new FVector4(Ar.Read<FVector>());
+            Normal[1] = new FVector4(Ar.Read<FVector>());
+            Normal[2] = Ar.Read<FVector4>();
         }
     }
 }

@@ -12,6 +12,7 @@ namespace CUE4Parse.UE4.Objects.RenderCore
         public readonly uint Y;
         public readonly uint Z;
         public readonly uint W;
+        private readonly bool _signed;
 
         public FPackedRGBA16N(FArchive Ar)
         {
@@ -20,37 +21,31 @@ namespace CUE4Parse.UE4.Objects.RenderCore
             Z = Ar.Read<ushort>();
             W = Ar.Read<ushort>();
 
-            if (Ar.Game >= GAME_UE4_20)
-            {
-                X ^= 0x8000;
-                Y ^= 0x8000;
-                Z ^= 0x8000;
-                W ^= 0x8000;
-            }
+            _signed = Ar.Game >= GAME_UE4_20;
         }
+
+        private float Decode(uint component) => _signed
+            ? MathF.Max(unchecked((short) component) / 32767.0f, -1.0f)
+            : component / 32767.5f - 1.0f;
 
         public static explicit operator FVector(FPackedRGBA16N packedRGBA16N)
         {
-            var X = (packedRGBA16N.X - (float) 32767.5) / (float) 32767.5;
-            var Y = (packedRGBA16N.Y - (float) 32767.5) / (float) 32767.5;
-            var Z = (packedRGBA16N.Z - (float) 32767.5) / (float) 32767.5;
+            var X = packedRGBA16N.Decode(packedRGBA16N.X);
+            var Y = packedRGBA16N.Decode(packedRGBA16N.Y);
+            var Z = packedRGBA16N.Decode(packedRGBA16N.Z);
 
             return new FVector(X, Y, Z);
         }
 
         public static explicit operator FVector4(FPackedRGBA16N packedRGBA16N)
         {
-            var X = (packedRGBA16N.X - (float) 32767.5) / (float) 32767.5;
-            var Y = (packedRGBA16N.Y - (float) 32767.5) / (float) 32767.5;
-            var Z = (packedRGBA16N.Z - (float) 32767.5) / (float) 32767.5;
-            var W = (packedRGBA16N.W - (float) 32767.5) / (float) 32767.5;
+            var X = packedRGBA16N.Decode(packedRGBA16N.X);
+            var Y = packedRGBA16N.Decode(packedRGBA16N.Y);
+            var Z = packedRGBA16N.Decode(packedRGBA16N.Z);
+            var W = packedRGBA16N.Decode(packedRGBA16N.W);
 
             return new FVector4(X, Y, Z, W);
         }
 
-        public static explicit operator FPackedNormal(FPackedRGBA16N packedRGBA16N)
-        {
-            return new((FVector) packedRGBA16N);
-        }
     }
 }

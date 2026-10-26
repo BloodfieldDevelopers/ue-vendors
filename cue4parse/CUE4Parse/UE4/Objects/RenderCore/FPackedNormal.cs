@@ -10,21 +10,28 @@ namespace CUE4Parse.UE4.Objects.RenderCore
     public struct FPackedNormal : IUStruct
     {
         public uint Data;
-        public float X => (Data & 0xFF) / 127.5f - 1; // // Rescale [0..255] range to [-1..1]
-        public float Y => ((Data >> 8) & 0xFF) / 127.5f - 1;
-        public float Z => ((Data >> 16) & 0xFF) / 127.5f - 1;
-        public float W => ((Data >> 24) & 0xFF) / 127.5f - 1;
+        private readonly bool _signed;
+        public float X => Decode(Data);
+        public float Y => Decode(Data >> 8);
+        public float Z => Decode(Data >> 16);
+        public float W => Decode(Data >> 24);
+
+        private float Decode(uint component) => _signed
+            ? MathF.Max(unchecked((sbyte) component) / 127.0f, -1.0f)
+            : (component & 0xFF) / 127.5f - 1.0f;
 
         public FPackedNormal(FArchive Ar)
         {
             Data = Ar.Read<uint>();
-            if (FRenderingObjectVersion.Get(Ar) >= FRenderingObjectVersion.Type.IncreaseNormalPrecision)
-                Data ^= 0x80808080;
+            // Modern vertex declarations use R8G8B8A8_SNORM. XOR plus UNORM
+            // decoding is not equivalent: it biases every normal component.
+            _signed = FRenderingObjectVersion.Get(Ar) >= FRenderingObjectVersion.Type.IncreaseNormalPrecision;
         }
 
-        public FPackedNormal(uint data)
+        public FPackedNormal(uint data, bool signed = false)
         {
             Data = data;
+            _signed = signed;
         }
 
 
@@ -35,6 +42,7 @@ namespace CUE4Parse.UE4.Objects.RenderCore
         private FPackedNormal(float x, float y, float z, float w)
         {
             Data = Pack(x) | Pack(y) << 8 | Pack(z) << 16 | Pack(w) << 24;
+            _signed = false;
         }
 
         public void SetW(float value)

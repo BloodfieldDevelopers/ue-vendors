@@ -6,7 +6,7 @@ namespace CUE4Parse.UE4.Assets.Exports.StaticMesh;
 
 public partial class FStaticMeshUVItem
 {
-    public static FPackedNormal[] SerializeHonorOfKingsWorldQTangent(FArchive Ar, bool useHighPrecisionTangents)
+    public static FVector4[] SerializeHonorOfKingsWorldQTangent(FArchive Ar, bool useHighPrecisionTangents)
     {
         var qTangent = useHighPrecisionTangents ? UnpackQTangent(Ar.Read<TIntVector4<short>>()) : UnpackQTangent(Ar.Read<TIntVector4<sbyte>>());
         var orientation = qTangent.W < 0.0f ? -1.0f : 1.0f;
@@ -17,7 +17,7 @@ public partial class FStaticMeshUVItem
         var normal = qTangent * FVector.UpVector;
         var tangentZ = new FVector4(normal, orientation);
 
-        return [new FPackedNormal(tangentX), new FPackedNormal(0), new FPackedNormal(tangentZ)];
+        return [new FVector4(tangentX), new FVector4(), tangentZ];
     }
 
     private static FQuat UnpackQTangent(TIntVector4<sbyte> packed) => new(

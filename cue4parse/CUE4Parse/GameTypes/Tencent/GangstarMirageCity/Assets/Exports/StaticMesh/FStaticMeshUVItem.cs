@@ -17,7 +17,7 @@ public partial class FStaticMeshUVItem
         QTangent16,
     }
 
-    public static FPackedNormal[][] SerializeTangentsGangstar(FArchive Ar)
+    public static FVector4[][] SerializeTangentsGangstar(FArchive Ar)
     {
         var unknown = Ar.Read<byte>();
         var tangentPrecision = Ar.Read<ETangentPrecision>();
@@ -32,17 +32,17 @@ public partial class FStaticMeshUVItem
         };
     }
 
-    private static FPackedNormal[] DecodeQTangent(TIntVector4<sbyte> packed) =>
+    private static FVector4[] DecodeQTangent(TIntVector4<sbyte> packed) =>
         DecodeQTangent(new FQuat(packed.X, packed.Y, packed.Z, packed.W));
-    private static FPackedNormal[] DecodeQTangent(TIntVector4<short> packed) =>
+    private static FVector4[] DecodeQTangent(TIntVector4<short> packed) =>
         DecodeQTangent(new FQuat(packed.X, packed.Y, packed.Z, packed.W));
-    private static FPackedNormal[] DecodeQTangent(FQuat qTangent)
+    private static FVector4[] DecodeQTangent(FQuat qTangent)
     {
         var orientation = qTangent.W < 0.0f ? -1.0f : 1.0f;
         qTangent.Normalize();
 
         var tangentX = qTangent * FVector.ForwardVector;
         var tangentZ = new FVector4(qTangent * FVector.UpVector, orientation);
-        return [new FPackedNormal(tangentX), new FPackedNormal(0), new FPackedNormal(tangentZ)];
+        return [new FVector4(tangentX), new FVector4(), tangentZ];
     }
 }
