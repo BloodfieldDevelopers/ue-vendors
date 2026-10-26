@@ -5,12 +5,59 @@ using SharpGLTF.Schema2;
 
 namespace CUE4Parse_Conversion.Writers.Gltf;
 
-public struct VertexColorXTextureX : IVertexMaterial, IEquatable<VertexColorXTextureX>
+public struct VertexColorXTextureX : IVertexMaterial, IVertexCustom, IEquatable<VertexColorXTextureX>
 {
     public int MaxColors => 1; // Do we need more?
     public int MaxTextCoords => Constants.MAX_MESH_UV_SETS;
 
     public Vector4 Color;
+
+    // Standard glTF requires unit NORMAL/TANGENT. Preserve the source frame
+    // separately so importers can opt into deformation without normalization.
+    public Vector3 AuthoredNormal;
+    public Vector4 AuthoredTangent;
+    private static readonly string[] AuthoredAttributes = ["_WGODOT_NORMAL", "_WGODOT_TANGENT"];
+    public IEnumerable<string> CustomAttributes => AuthoredAttributes;
+
+    public void Validate()
+    {
+        if (!float.IsFinite(AuthoredNormal.X) || !float.IsFinite(AuthoredNormal.Y) ||
+            !float.IsFinite(AuthoredNormal.Z) || !float.IsFinite(AuthoredTangent.X) ||
+            !float.IsFinite(AuthoredTangent.Y) || !float.IsFinite(AuthoredTangent.Z) ||
+            (AuthoredTangent.W != -1.0f && AuthoredTangent.W != 1.0f))
+        {
+            throw new InvalidOperationException("Invalid authored mesh tangent frame.");
+        }
+    }
+
+    public bool TryGetCustomAttribute(string name, out object value)
+    {
+        switch (name)
+        {
+            case "_WGODOT_NORMAL":
+                value = AuthoredNormal;
+                return true;
+            case "_WGODOT_TANGENT":
+                value = AuthoredTangent;
+                return true;
+            default:
+                value = null;
+                return false;
+        }
+    }
+
+    public void SetCustomAttribute(string name, object value)
+    {
+        switch (name)
+        {
+            case "_WGODOT_NORMAL":
+                AuthoredNormal = (Vector3)value;
+                break;
+            case "_WGODOT_TANGENT":
+                AuthoredTangent = (Vector4)value;
+                break;
+        }
+    }
 
     // public List<Vector2> TexCoords;
     public Vector2 TexCoord0;
@@ -22,9 +69,11 @@ public struct VertexColorXTextureX : IVertexMaterial, IEquatable<VertexColorXTex
     public Vector2 TexCoord6;
     public Vector2 TexCoord7;
 
-    public VertexColorXTextureX(Vector2[] texCoords, Vector4? color = null)
+    public VertexColorXTextureX(Vector2[] texCoords, Vector4? color, Vector3 normal, Vector4 tangent)
     {
         Color = color ?? Vector4.One;
+        AuthoredNormal = normal;
+        AuthoredTangent = tangent;
         TexCoord0 = texCoords.Length > 0 ? texCoords[0] : Vector2.Zero;
         TexCoord1 = texCoords.Length > 1 ? texCoords[1] : Vector2.Zero;
         TexCoord2 = texCoords.Length > 2 ? texCoords[2] : Vector2.Zero;
@@ -71,6 +120,8 @@ public struct VertexColorXTextureX : IVertexMaterial, IEquatable<VertexColorXTex
 
     public IEnumerable<KeyValuePair<string, AttributeFormat>> GetEncodingAttributes()
     {
+        yield return new KeyValuePair<string, AttributeFormat>("_WGODOT_NORMAL", new AttributeFormat(DimensionType.VEC3));
+        yield return new KeyValuePair<string, AttributeFormat>("_WGODOT_TANGENT", new AttributeFormat(DimensionType.VEC4));
         yield return new KeyValuePair<string, AttributeFormat>("COLOR_0", new AttributeFormat(DimensionType.VEC4, EncodingType.UNSIGNED_BYTE, true));
         yield return new KeyValuePair<string, AttributeFormat>("TEXCOORD_0", new AttributeFormat(DimensionType.VEC2));
         yield return new KeyValuePair<string, AttributeFormat>("TEXCOORD_1", new AttributeFormat(DimensionType.VEC2));
@@ -117,7 +168,9 @@ public struct VertexColorXTextureX : IVertexMaterial, IEquatable<VertexColorXTex
 
     public bool Equals(VertexColorXTextureX other)
     {
-        return other.Color == Color &&
+        return other.AuthoredNormal == AuthoredNormal &&
+            other.AuthoredTangent == AuthoredTangent &&
+            other.Color == Color &&
             other.TexCoord0 == TexCoord0 &&
             other.TexCoord1 == TexCoord1 &&
             other.TexCoord2 == TexCoord2 &&

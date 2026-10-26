@@ -183,9 +183,9 @@ public class Gltf
                     uvList3[k + 1] = (Vector2)lod.ExtraUvs[k][idx2];
                 }
 
-                var c1 = new VertexColorXTextureX(uvList1, colors?[idx0]);
-                var c2 = new VertexColorXTextureX(uvList2, colors?[idx1]);
-                var c3 = new VertexColorXTextureX(uvList3, colors?[idx2]);
+                var c1 = PrepareMaterial(vert1, uvList1, colors?[idx0]);
+                var c2 = PrepareMaterial(vert2, uvList2, colors?[idx1]);
+                var c3 = PrepareMaterial(vert3, uvList3, colors?[idx2]);
 
                 IVertexBuilder a, b, c;
                 if (isSkinned && vert1 is SkinnedMeshVertex j1 && vert2 is SkinnedMeshVertex j2 && vert3 is SkinnedMeshVertex j3)
@@ -205,6 +205,14 @@ public class Gltf
                 prim.AddTriangle(a, b, c);
             }
         }
+    }
+
+    private static VertexColorXTextureX PrepareMaterial(IMeshVertex vertex, Vector2[] uvs, FColor? color)
+    {
+        var normal = (Vector3)SwapYZ((FVector)vertex.Normal);
+        var tangent = (Vector3)SwapYZ((FVector)vertex.Tangent);
+        return new VertexColorXTextureX(uvs, color, normal,
+            new Vector4(tangent, vertex.Normal.W < 0 ? 1.0f : -1.0f));
     }
 
     public static VertexJoints4 PrepareVertexJoint(SkinnedMeshVertex vert)
