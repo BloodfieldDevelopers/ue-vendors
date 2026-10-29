@@ -52,18 +52,17 @@ public class Gltf
 
         if (exportMorphTargets && mesh.MorphTargets is { Length: > 0 } morphTargets)
         {
-            var targetNames = "{\"targetNames\": [";
+            var targetNames = new JsonArray();
             for (var j = 0; j < morphTargets.Length; j++)
             {
                 var morphTarget = morphTargets[j].Load<UMorphTarget>();
-                if (morphTarget?.MorphLODModels == null || morphTarget.MorphLODModels.Length < lod.SourceLodIndex || morphTarget.MorphLODModels[lod.SourceLodIndex].Vertices.Length == 0)
+                if (morphTarget?.MorphLODModels == null || morphTarget.MorphLODModels.Length <= lod.SourceLodIndex || morphTarget.MorphLODModels[lod.SourceLodIndex].Vertices.Length == 0)
                     continue;
 
-                var morphBuilder = meshBuilder.UseMorphTarget(j);
+                var morphBuilder = meshBuilder.UseMorphTarget(targetNames.Count);
                 var morphModel = morphTarget.MorphLODModels[lod.SourceLodIndex];
 
-                targetNames += $"\"{morphTarget.Name}\"";
-                targetNames += j != morphTargets.Length - 1 ? "," : "";
+                targetNames.Add(morphTarget.Name);
 
                 var verts = morphBuilder.Vertices.ToArray();
                 foreach (var delta in morphModel.Vertices)
@@ -78,8 +77,10 @@ public class Gltf
                 }
             }
 
-            targetNames += "]}";
-            meshBuilder.Extras = JsonNode.Parse(targetNames);
+            if (targetNames.Count > 0)
+            {
+                meshBuilder.Extras = new JsonObject { ["targetNames"] = targetNames };
+            }
         }
 
         Model = sceneBuilder.ToGltf2();

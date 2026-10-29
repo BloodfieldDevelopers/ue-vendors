@@ -454,7 +454,8 @@ public sealed class SkeletalMeshDto : SkeletonDto
     {
         foreach (var sourceLodIndex in quality.GetRange(mesh.LODModels!.Length, i => mesh.LODModels[i].SkipLod))
         {
-            LODs.Add(MeshLodDto<SkinnedMeshVertex>.FromSkeletalMesh(this, sourceLodIndex, mesh.LODModels[sourceLodIndex], mesh.LODInfo![sourceLodIndex].ScreenSize.Value));
+            var settings = mesh.LODInfo![sourceLodIndex];
+            LODs.Add(MeshLodDto<SkinnedMeshVertex>.FromSkeletalMesh(this, sourceLodIndex, mesh.LODModels[sourceLodIndex], settings.ScreenSize.Value, settings.LODMaterialMap));
         }
     }
 
