@@ -203,7 +203,13 @@ public class Gltf
                     c = new VertexBuilder<VERTEX, VertexColorXTextureX, VertexEmpty>(v3, c3);
                 }
 
-                prim.AddTriangle(a, b, c);
+                var triangle = prim.AddTriangle(a, b, c);
+                if (triangle.A < 0 && v1.Position != v2.Position &&
+                    v1.Position != v3.Position && v2.Position != v3.Position)
+                {
+                    throw new InvalidOperationException(
+                        $"glTF discarded a source triangle in {lod.Owner.Name}, LOD {lod.SourceLodIndex}, section {i}, face {j}.");
+                }
             }
         }
     }
@@ -246,12 +252,25 @@ public class Gltf
 
     private static VertexPositionNormalTangent PrepareVertex(IMeshVertex vertex)
     {
-        var tangent = SwapYZAndNormalize((FVector)vertex.Tangent);
+        var normal = (Vector3)SwapYZAndNormalize((FVector)vertex.Normal);
+        var tangent = (Vector3)SwapYZAndNormalize((FVector)vertex.Tangent);
+        // Standard glTF disallows zero directions, and its builder otherwise
+        // drops the entire triangle. These unit directions are only the glTF
+        // representation; _WGODOT_NORMAL/TANGENT retain the original values.
+        if (normal == Vector3.Zero)
+        {
+            normal = Vector3.UnitZ;
+        }
+        if (tangent == Vector3.Zero)
+        {
+            var axis = MathF.Abs(normal.X) < MathF.Abs(normal.Y) ? Vector3.UnitX : Vector3.UnitY;
+            tangent = Vector3.Normalize(Vector3.Cross(normal, axis));
+        }
         // Unreal stores the bitangent sign in TangentZ.W (Normal.W). Swapping
         // Y/Z reverses handedness; the glTF tangent's W must remain exactly +/-1.
         var sign = vertex.Normal.W < 0 ? 1.0f : -1.0f;
         return new VertexPositionNormalTangent(SwapYZ(vertex.Position * UnitScale),
-            SwapYZAndNormalize((FVector)vertex.Normal), new Vector4(tangent.X, tangent.Y, tangent.Z, sign));
+            normal, new Vector4(tangent, sign));
     }
 
     public static FVector SwapYZAndNormalize(FVector vec)
