@@ -1,3 +1,6 @@
 *.dll
 *.exe
+!cue4parse/CUE4Parse-Conversion/Resources/Detex.dll
+!cue4parse/CUE4Parse-Conversion/Resources/tegra_swizzle_x64.dll
+!cue4parse/CUE4Parse-Conversion/Resources/crunch.dll
 
