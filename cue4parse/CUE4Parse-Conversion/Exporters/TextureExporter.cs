@@ -1,5 +1,7 @@
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse_Conversion.Textures;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace CUE4Parse_Conversion.Exporters;
 
@@ -7,6 +9,13 @@ public sealed class TextureExporter(UTexture texture) : ExporterBase(texture)
 {
     protected override IReadOnlyList<ExportFile> BuildExportFiles(CancellationToken ct = default)
     {
+        // Render targets have authored settings, but their pixels are produced
+        // at runtime. Preserve those settings instead of decoding absent mips.
+        if (texture is UTextureRenderTarget)
+        {
+            var properties = JsonConvert.SerializeObject(texture, Formatting.Indented);
+            return [new ExportFile("json", Encoding.UTF8.GetBytes(properties))];
+        }
         Log.Debug("Decoding texture for platform {Platform} as {Format}", Session.Options.TexturePlatform, Session.Options.TextureFormat);
 
         var files = new List<ExportFile>();
